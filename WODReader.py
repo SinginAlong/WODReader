@@ -34,7 +34,8 @@ def build_date(today=datetime.date.today()):
         return monday.strftime("%b") + ". " + str(ordinal(monday.day)) + " - " + \
             saturday.strftime("%b") + ". " + str(ordinal(saturday.day))
     else:
-        return monday.strftime("%b") + ". " + str(monday.day) + "-" + str(saturday.day)
+        # return monday.strftime("%b") + ". " + str(monday.day) + "-" + str(saturday.day)
+        return monday.strftime("%B") + " " + str(monday.day) + "-" + str(saturday.day)
 
 
 def build_url(index):
@@ -45,6 +46,7 @@ def find_webpage(start_index, search_string):
     """starting at start_index increases index until title matches search_string
     returns url of webpage, if failed returns "" """
     # possible errors: no internet, no page
+    if DEBUG: print("Looking for " + search_string)
     for i in range(0, 30):  # only try 30 indexes
         url = build_url(start_index+i)
         soup = BeautifulSoup(urllib.request.urlopen(url), features="html.parser")
