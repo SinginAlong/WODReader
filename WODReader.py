@@ -1,47 +1,100 @@
 # goal of this program is to go on the web, access the BION wod list and extract the workouts for the current day
 
-# website url is as follows
-# http://www.bioncrossfit.com/wods/517/crossfit-wods-for-nov-19-24
-# http://www.bioncrossfit.com/wods/515/crossfit-wods-for-nov-12-17
-# http://www.bioncrossfit.com/wods/512/crossfit-wods-for-nov-5-10
-# http://www.bioncrossfit.com/wods/509/crossfit-wods-for-oct-29-nov-3rd
-# http://www.bioncrossfit.com/wods/507/crossfit-wods-for-oct-22-27
+# VERSIONS
+# V1 - code to pull text from website, including use of BeautifulSoup
+# V2 - copied to OndDrive
+# V3 - bundled into functions, build_date, build_url, find_website, pull_text, & extract_todays_wods
+# V4 - plan to make main script handle off days
+
+# to do
+# handle website not opening error
+# create fileIO for storing last correct index
+
 
 import datetime
 import urllib.request
-import re
 from bs4 import BeautifulSoup
+
+#CONSTANTS
+DEBUG = True  # flag for printing debug statements
 
 # FUNCTIONS
 
 
-def extract_todays_wod(text, day):
-    """takes in wod list text and the current day and returns the workout for that day"""
-    text.find(day)
+def ordinal(n):
+    return "%d%s" % (n,"tsnrhtdd"[(n/10%10!=1)*(n%10<4)*n%10::4])
 
 
-# SCRIPT
+def build_date(today=datetime.date.today()):
+    """uses today's date to build what the wod date should be"""
+    monday = today + datetime.timedelta(days=-today.weekday())
+    saturday = monday + datetime.timedelta(days=5)
 
-now = datetime.datetime.now()
+    if monday.month != saturday.month:
+        return monday.strftime("%b") + ". " + str(ordinal(monday.day)) + " - " + \
+            saturday.strftime("%b") + ". " + str(ordinal(saturday.day))
+    else:
+        return monday.strftime("%b") + ". " + str(monday.day) + "-" + str(saturday.day)
 
-print("The current day is ", str(now.day))
 
-with urllib.request.urlopen("http://www.bioncrossfit.com/wods/517/crossfit-wods-for-nov-19-24") as response:
-    html = response.read()
-    soup = BeautifulSoup(html, features="html.parser")
+def build_url(index):
+    return "http://www.bioncrossfit.com/wods/" + str(index) + "/"
+
+
+def find_webpage(start_index, search_string):
+    """starting at start_index increases index until title matches search_string
+    returns url of webpage, if failed returns "" """
+    # possible errors: no internet, no page
+    for i in range(0, 30):  # only try 30 indexes
+        url = build_url(start_index+i)
+        soup = BeautifulSoup(urllib.request.urlopen(url), features="html.parser")
+        if DEBUG: print("Pulled title: " + soup.title.string)
+        if search_string in soup.title.string:
+            return url
+    print("Unable to find webpage")
+    return ""
+
+
+def pull_text(url):
+    soup = BeautifulSoup(urllib.request.urlopen(url).read(), features="html.parser")
+    # remove script and styling elements from html
     for script in soup(["script", "style"]):
-        script.extract()  # remove scripting
-
-    # gest text
+        script.extract()
+    # get text
     text = soup.get_text()
-
     # break into lines and remove leading and trailing space
     lines = (line.strip() for line in text.splitlines())
     # break multi-headlines into a line each
     chunks = (phrase.strip() for line in lines for phrase in line.split("  "))
     # drop blank lines
-    text = "\n".join(chunk for chunk in chunks if chunk)
-
-    print(text)
+    return "\n".join(chunk for chunk in chunks if chunk)
 
 
+def extract_todays_wods(text, today):
+    """uses the day name of today to get the wods of that day"""
+    # will have to handle saturday different, end of wods text is different
+    # will also have to handle sunday differently (just print next monday's... (no just there))
+    # print next day's wods after certain time...
+    start_index = text.find(today.strftime("%A"))
+    end_index = text.find((today + datetime.timedelta(days=1)).strftime("%A"))
+    return text[(start_index + len(today.strftime("%A"))):end_index]
+
+
+# SCRIPT
+
+# open file and read last index/or webpage
+
+# will have to choose day to use, if sunday use monday
+
+day_to_use = datetime.date.today()
+# day_to_use = datetime.date(2018, 11, 20)
+
+url = find_webpage(720, "CrossFit Wods for " + build_date(day_to_use))
+
+if url == "":
+    print("give up")
+else:
+    if DEBUG: print("pulling wods from url: " + url)
+    text = pull_text(url)
+    wods = extract_todays_wods(text, day_to_use)
+    print(wods)
