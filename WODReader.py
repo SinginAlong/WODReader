@@ -18,6 +18,7 @@ from bs4 import BeautifulSoup
 #CONSTANTS
 DEBUG = True  # flag for printing debug statements
 WOD_TIME = datetime.time(hour=5, minute=30) # hour in 24 hour clock, not set up for seconds
+INDEX_FILE = "webpage_index.dat"
 
 # FUNCTIONS
 
@@ -58,9 +59,9 @@ def find_webpage_m(start_index, search_string):
         if DEBUG: print("Pulled title: " + soup.title.string)
         for s in search_string:
             if s in soup.title.string:
-                return url
+                return url, start_index+i
     print("Unable to find webpage")
-    return ""
+    return "", None
 
 
 def pull_text(url):
@@ -97,6 +98,34 @@ def choose_day(wo_time):
         return now
 
 
+def get_index():
+    """reads file to get most recent successful webpage address"""
+    default_index = 723
+    try:
+        f = open(INDEX_FILE, 'r')
+    except FileNotFoundError:
+        if DEBUG: print("Couldn't find index file")
+        return default_index
+    i = f.read()
+    try:
+        i = int(i)
+    except ValueError:
+        if DEBUG: print("Could not read webpage index")
+        return default_index
+    finally:
+        f.close()
+    return i
+
+
+def save_index(index):
+    """saves the index to the index file"""
+    if index is None:
+        return
+    with open(INDEX_FILE, "w") as f:
+        f.write(str(index))
+        f.close()
+
+
 # SCRIPT
 
 # open file and read last index/or webpage
@@ -107,7 +136,9 @@ def choose_day(wo_time):
 day_to_use = choose_day(WOD_TIME)
 # day_to_use = datetime.date(2018, 11, 20)
 
-url = find_webpage_m(720, ["CrossFit Wods for " + s for s in build_date_l(day_to_use)])
+url, index = find_webpage_m(get_index(), ["CrossFit Wods for " + s for s in build_date_l(day_to_use)])
+
+save_index(index)
 
 if url == "":
     print("give up")
