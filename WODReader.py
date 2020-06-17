@@ -17,6 +17,7 @@ from bs4 import BeautifulSoup
 
 #CONSTANTS
 DEBUG = True  # flag for printing debug statements
+WOD_TIME = datetime.time(hour=5, minute=30) # hour in 24 hour clock, not set up for seconds
 
 # FUNCTIONS
 
@@ -87,13 +88,23 @@ def extract_todays_wods(text, today):
     return text[(start_index + len(today.strftime("%A"))):end_index]
 
 
+def choose_day(wo_time):
+    # if the current time is past wo_time (work out time, then choose tomorrow)
+    now = datetime.datetime.now()
+    if now.hour > wo_time.hour or now.hour == wo_time.hour and now.minute >  wo_time.minute:
+        return now + datetime.timedelta(days=1)
+    else:
+        return now
+
+
 # SCRIPT
 
 # open file and read last index/or webpage
 
 # will have to choose day to use, if sunday use monday
 
-day_to_use = datetime.date.today()
+# day_to_use = datetime.date.today()
+day_to_use = choose_day(WOD_TIME)
 # day_to_use = datetime.date(2018, 11, 20)
 
 url = find_webpage_m(720, ["CrossFit Wods for " + s for s in build_date_l(day_to_use)])
@@ -104,4 +115,5 @@ else:
     if DEBUG: print("pulling wods from url: " + url)
     text = pull_text(url)
     wods = extract_todays_wods(text, day_to_use)
+    print("\nWODS for " + day_to_use.strftime('%A'))
     print(wods)
