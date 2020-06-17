@@ -4,8 +4,12 @@ Scraps Bion Crossfit website for wods and displays workout for the current day
 # Issues
 May not behave correctly on weekends
 
-# Next Steps
-Add page index save mechanism
+# Ideas
+Add print out on failure to find webpage on instructions to update index
+
+# Update 6/17/20 III
+Added index tracking.
+Program saves most recent successful index.
 
 # Update 6/17/20 II
 Added tick-over time.
