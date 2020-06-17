@@ -25,19 +25,6 @@ def ordinal(n):
     return "%d%s" % (n,"tsnrhtdd"[(n/10%10!=1)*(n%10<4)*n%10::4])
 
 
-def build_date(today=datetime.date.today()):
-    """uses today's date to build what the wod date should be"""
-    monday = today + datetime.timedelta(days=-today.weekday())
-    saturday = monday + datetime.timedelta(days=5)
-
-    if monday.month != saturday.month:
-        return monday.strftime("%b") + ". " + str(ordinal(monday.day)) + " - " + \
-            saturday.strftime("%b") + ". " + str(ordinal(saturday.day))
-    else:
-        # return monday.strftime("%b") + ". " + str(monday.day) + "-" + str(saturday.day)
-        return monday.strftime("%B") + " " + str(monday.day) + "-" + str(saturday.day)
-
-
 def build_date_l(today=datetime.date.today()):
     # returns a list
     """uses today's date to build what the wod date should be"""
@@ -56,21 +43,6 @@ def build_date_l(today=datetime.date.today()):
 
 def build_url(index):
     return "http://www.bioncrossfit.com/wods/" + str(index) + "/"
-
-
-def find_webpage(start_index, search_string):
-    """starting at start_index increases index until title matches search_string
-    returns url of webpage, if failed returns "" """
-    # possible errors: no internet, no page
-    if DEBUG: print("Looking for " + search_string)
-    for i in range(0, 30):  # only try 30 indexes
-        url = build_url(start_index+i)
-        soup = BeautifulSoup(urllib.request.urlopen(url), features="html.parser")
-        if DEBUG: print("Pulled title: " + soup.title.string)
-        if search_string in soup.title.string:
-            return url
-    print("Unable to find webpage")
-    return ""
 
 
 def find_webpage_m(start_index, search_string):
