@@ -38,6 +38,22 @@ def build_date(today=datetime.date.today()):
         return monday.strftime("%B") + " " + str(monday.day) + "-" + str(saturday.day)
 
 
+def build_date_l(today=datetime.date.today()):
+    # returns a list
+    """uses today's date to build what the wod date should be"""
+    monday = today + datetime.timedelta(days=-today.weekday())
+    saturday = monday + datetime.timedelta(days=5)
+
+    if monday.month != saturday.month:
+        r = [monday.strftime("%b") + ". " + str(ordinal(monday.day)) + " - " + \
+            saturday.strftime("%b") + ". " + str(ordinal(saturday.day))]
+    else:
+        r = [monday.strftime("%b") + ". " + str(monday.day) + "-" + str(saturday.day),
+             monday.strftime("%B") + " " + str(monday.day) + "-" + str(saturday.day)]
+
+    return r
+
+
 def build_url(index):
     return "http://www.bioncrossfit.com/wods/" + str(index) + "/"
 
@@ -53,6 +69,23 @@ def find_webpage(start_index, search_string):
         if DEBUG: print("Pulled title: " + soup.title.string)
         if search_string in soup.title.string:
             return url
+    print("Unable to find webpage")
+    return ""
+
+
+def find_webpage_m(start_index, search_string):
+    # search string will be a list
+    """starting at start_index increases index until title matches search_string
+    returns url of webpage, if failed returns "" """
+    # possible errors: no internet, no page
+    if DEBUG: print(["Looking for " + s for s in search_string])
+    for i in range(0, 30):  # only try 30 indexes
+        url = build_url(start_index+i)
+        soup = BeautifulSoup(urllib.request.urlopen(url), features="html.parser")
+        if DEBUG: print("Pulled title: " + soup.title.string)
+        for s in search_string:
+            if s in soup.title.string:
+                return url
     print("Unable to find webpage")
     return ""
 
@@ -91,7 +124,7 @@ def extract_todays_wods(text, today):
 day_to_use = datetime.date.today()
 # day_to_use = datetime.date(2018, 11, 20)
 
-url = find_webpage(720, "CrossFit Wods for " + build_date(day_to_use))
+url = find_webpage_m(720, ["CrossFit Wods for " + s for s in build_date_l(day_to_use)])
 
 if url == "":
     print("give up")
