@@ -16,7 +16,7 @@ import urllib.request
 from bs4 import BeautifulSoup
 
 #CONSTANTS
-DEBUG = True  # flag for printing debug statements
+DEBUG = False  # flag for printing debug statements
 WOD_TIME = datetime.time(hour=5, minute=30) # hour in 24 hour clock, not set up for seconds
 INDEX_FILE = "webpage_index.dat"
 

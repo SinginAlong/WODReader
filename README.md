@@ -2,7 +2,8 @@
 Scraps Bion Crossfit website for wods and displays workout for the current day
 
 # Issues
-May not behave correctly on weekends
+ - May not behave correctly on weekends
+ - Saturday includes address
 
 # Ideas
 Add print out on failure to find webpage on instructions to update index
